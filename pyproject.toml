@@ -1,0 +1,69 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "iss-workflows"
+version = "2026.10.0"
+description = "Prefect workflows and data-processing pipeline for the ISS beamline (NSLS-II)"
+readme = "README.md"
+license = { text = "BSD-3-Clause" }
+authors = [{ name = "Brookhaven National Laboratory / ISS" }]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2",
+    "pandas>=2",
+    "scipy>=1.14",
+    "numexpr>=2.10",
+    "xraydb>=4.5",
+    "tqdm",
+    "tiled[client]>=0.1.0",
+    "prefect>=2.14",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["iss_workflows"]
+
+[tool.hatch.build.targets.sdist]
+include = ["iss_workflows", "data_validation.py", "end_of_run_workflow.py", "README.md", "LICENSE"]
+
+# --- pixi workspace ----------------------------------------------------------
+# `pixi run test` runs the unit tests; `pixi run validate <uid>` reads every
+# stream of a run through Tiled (needs the `nsls2` Tiled profile on the host).
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.dependencies]
+python = ">=3.12,<3.14"
+numpy = ">=2,<3"
+pandas = ">=2,<3"
+scipy = ">=1.14"
+numexpr = ">=2.10"
+xraydb = ">=4.5"
+tqdm = "*"
+tiled-client = ">=0.2.3,<0.3"
+prefect = ">=3.0"
+
+[tool.pixi.pypi-dependencies]
+iss-workflows = { path = ".", editable = true }
+
+[tool.pixi.feature.test.dependencies]
+pytest = ">=8"
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
+
+[tool.pixi.tasks]
+test = "pytest -q tests"
+validate = "python -c 'import sys; from data_validation import data_validation; data_validation(sys.argv[1])'"

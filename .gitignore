@@ -84,3 +84,7 @@ target/
 #file extensions
 #
 *.h5
+
+# pixi environments
+.pixi/*
+!.pixi/config.toml
